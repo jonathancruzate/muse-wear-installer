@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Muse Wear Installer — Wear OS companion that receives watch-face
+  APKs from Muse Device Assistance on the paired phone over the
+  Wearable Data Layer and installs them after one on-watch tap.
+
+  Framework-only app (no AndroidX), raw aapt2/d8 toolchain, per the
+  fleet build pattern. The GMS version meta-data value comes from the
+  app's own res/values/gms.xml (google_play_services_version), taken
+  from the staged play-services-basement AAR — see DESIGN.md.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.jonathancruzate.metamusewearinstaller">
+
+    <uses-feature android:name="android.hardware.type.watch" android:required="true" />
+
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:label="Muse Wear Installer"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:allowBackup="false">
+
+        <meta-data android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+
+        <activity android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.DeviceDefault">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".InstallPromptActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@android:style/Theme.DeviceDefault.Dialog" />
+
+        <service android:name=".WearInstallListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <action android:name="com.google.android.gms.wearable.CHANNEL_EVENT" />
+                <data android:scheme="wear" android:host="*"
+                    android:pathPrefix="/muse-wear-installer" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name=".PromptActionReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="com.jonathancruzate.metamusewearinstaller.action.PROMPT_INSTALL" />
+                <action android:name="com.jonathancruzate.metamusewearinstaller.action.PROMPT_DISMISS" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".InstallStatusReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="com.jonathancruzate.metamusewearinstaller.action.INSTALL_STATUS" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
